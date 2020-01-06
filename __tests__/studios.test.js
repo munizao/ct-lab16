@@ -3,7 +3,9 @@ const request = require('supertest');
 const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
-const Studio = require('../lib/models/Studio');
+// const Studio = require('../lib/models/Studio');
+const { testSetup } = require('../test-setup/setup');
+
 
 describe('studio routes', () => {
   beforeAll(() => {
@@ -12,24 +14,7 @@ describe('studio routes', () => {
   let studios;
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
-    studios = await Studio.create([
-      {
-        name: 'Dreamworks',
-        address: {
-          city: 'Hollywood',
-          state: 'California',
-          country: 'USA'
-        }
-      },
-      {
-        name: 'Laika',
-        address: {
-          city: 'Portland',
-          state: 'Oregon',
-          country: 'USA'
-        }
-      }
-    ]);
+    ({ studios } = await testSetup());
   });
 
   afterAll(() => {
