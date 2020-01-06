@@ -14,7 +14,7 @@ describe('studio routes', () => {
   let studios;
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
-    ({ studios } = await testSetup());
+    ({ studios, films } = await testSetup());
   });
 
   afterAll(() => {
@@ -31,6 +31,28 @@ describe('studio routes', () => {
               _id: studio._id.toString(),
               name: studio.name,
             });
+        });
+      });
+  });
+
+  it('gets a studio by id', () => {
+    return request(app)
+      .get(`/api/vi/studios/${studios[0]._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: studios[0]._id,
+          name: 'Dreamworks',
+          address: {
+            city: 'Hollywood',
+            state: 'California',
+            country: 'USA'
+          },
+          films: [
+            {
+              _id: films[0]._id,
+              title: 'Young Einstein'
+            }
+          ]
         });
       });
   });
