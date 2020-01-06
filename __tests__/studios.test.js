@@ -12,6 +12,7 @@ describe('studio routes', () => {
     connect();
   });
   let studios;
+  let films;
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
     ({ studios, films } = await testSetup());
