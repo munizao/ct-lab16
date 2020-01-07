@@ -7,14 +7,15 @@ const mongoose = require('mongoose');
 const { testSetup } = require('../test-setup/setup');
 
 
-describe('studio routes', () => {
+describe('actor routes', () => {
   beforeAll(() => {
     connect();
   });
   let actors;
+  let films;
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
-    ({ actors } = await testSetup());
+    ({ actors, films } = await testSetup());
   });
 
   afterAll(() => {
@@ -32,6 +33,28 @@ describe('studio routes', () => {
               name: actor.name,
             });
         });
+      });
+  });
+
+
+  it('gets an actor by id', () => {
+    return request(app)
+      .get(`/api/v1/actors/${actors[0]._id}`)
+      .then(res => {
+        expect(res.body).toEqual(
+          {
+            _id: actors[0]._id.toString(),
+            name: actors[0].name,
+            dob: actors[0].dob.toISOString(),
+            pob: actors[0].pob,
+            films: [
+              {
+                _id: films[0]._id.toString(),
+                title: films[0].title,
+                released: films[0].released
+              }
+            ]
+          });
       });
   });
 });
