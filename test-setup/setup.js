@@ -25,12 +25,12 @@ const testSetup = async() => {
   let actors = await Actor.create([
     {
       name: 'Yahoo Serious',
-      date: new Date(1953, 6, 27),
+      dob: new Date(1953, 6, 27),
       pob: 'Cardiff, NSW, Australia'
     },
     {
       name: 'Meg Ryan',
-      date: new Date(1961, 10, 19),
+      dob: new Date(1961, 10, 19),
       pob: 'Fairfield, CT, USA'
     }
   ]);
