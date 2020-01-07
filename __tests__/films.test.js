@@ -12,9 +12,10 @@ describe('film routes', () => {
   });
   let films;
   let studios;
+  let actors;
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
-    ({ films, studios } = await testSetup());
+    ({ films, studios, actors } = await testSetup());
   });
 
   afterAll(() => {
@@ -63,6 +64,30 @@ describe('film routes', () => {
             }
           );
         }));
+      });
+  });
+
+  it('gets a film by id', () => {
+    return request(app)
+      .get(`/api/v1/films/${films[0]._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: films[0]._id.toString(),
+          title: films[0].title,
+          released: films[0].released,
+          studio: {
+            _id: studios[0]._id.toString(),
+            name: studios[0].name
+          },
+          cast: [{
+            _id: films[0].cast[0]._id.toString(), 
+            role: films[0].cast[0].role,
+            actor: {
+              _id: actors[0]._id.toString(),
+              name: actors[0].name
+            } 
+          }]
+        });
       });
   });
 });
