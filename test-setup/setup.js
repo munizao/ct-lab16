@@ -47,7 +47,7 @@ const testSetup = async() => {
     },
     {
       title: 'When Harry Met Sally',
-      studio: studios[0]._id,
+      studio: studios[1]._id,
       released: 1989,
       cast: [{
         role: 'Sally',
