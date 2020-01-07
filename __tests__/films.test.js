@@ -90,4 +90,19 @@ describe('film routes', () => {
         });
       });
   });
+
+  it('deletes a film by id', () => {
+    return request(app)
+      .delete(`/api/v1/films/${films[0]._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: films[0]._id.toString(),
+          title: films[0].title,
+          cast: JSON.parse(JSON.stringify(films[0].cast)),
+          released: films[0].released,
+          studio: films[0].studio.toString()
+        });
+      });
+  });
+
 });
