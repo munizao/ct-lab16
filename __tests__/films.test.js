@@ -40,7 +40,6 @@ describe('film routes', () => {
             studio: film.studio.toString(),
             released: film.released,
             cast: [],
-            __v: 0
           });
       });
   });
