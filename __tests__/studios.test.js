@@ -38,10 +38,10 @@ describe('studio routes', () => {
 
   it('gets a studio by id', () => {
     return request(app)
-      .get(`/api/vi/studios/${studios[0]._id}`)
+      .get(`/api/v1/studios/${studios[0]._id}`)
       .then(res => {
         expect(res.body).toEqual({
-          _id: studios[0]._id,
+          _id: studios[0]._id.toString(),
           name: 'Dreamworks',
           address: {
             city: 'Hollywood',
@@ -50,7 +50,7 @@ describe('studio routes', () => {
           },
           films: [
             {
-              _id: films[0]._id,
+              _id: films[0]._id.toString(),
               title: 'Young Einstein'
             }
           ]
