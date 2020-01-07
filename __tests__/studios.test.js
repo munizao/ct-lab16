@@ -81,7 +81,7 @@ describe('studio routes', () => {
       });
   });
 
-  it('deletes a studio by id', async () => {
+  it('deletes a studio by id', async() => {
     const studioObj = {
       name: 'Pixar',
       address: {
