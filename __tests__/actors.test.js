@@ -27,7 +27,7 @@ describe('actor routes', () => {
       name: 'Drew Barrymore',
       dob: new Date(1975, 1, 22),
       pob: 'Culver City, California, USA'
-    }
+    };
 
     return request(app)
       .post('/api/v1/actors/')
