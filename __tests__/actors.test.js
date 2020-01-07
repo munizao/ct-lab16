@@ -3,7 +3,7 @@ const request = require('supertest');
 const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
-// const Actor = require('../lib/models/Actor');
+const Actor = require('../lib/models/Actor');
 const { testSetup } = require('../test-setup/setup');
 
 
@@ -76,6 +76,41 @@ describe('actor routes', () => {
               }
             ]
           });
+      });
+  });
+
+  it('deletes an actor by id', async() => {
+    const actorObj = {
+      name: 'Drew Barrymore',
+      dob: new Date(1975, 1, 22),
+      pob: 'Culver City, California, USA'
+    };
+
+    const actor = await Actor.create(actorObj);
+
+    return request(app)
+      .delete(`/api/v1/actors/${actor._id}`)
+      .then(async(res) => {
+        const id = actor._id;
+        expect(res.body).toEqual({
+          _id: actor._id.toString(),
+          name: 'Drew Barrymore',
+          dob: actor.dob.toISOString(),
+          pob: 'Culver City, California, USA'
+        });
+        const deletedActor = await Actor.findById(id);
+        expect(deletedActor).toBeFalsy();
+      });
+  });
+
+  it('errors if you delete an actor by id when it is used by a film', () => {
+    return request(app)
+      .delete(`/api/v1/actors/${actors[0]._id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          message: 'Cannot delete actor while there are films including it.',
+          status: 403
+        });
       });
   });
 });
