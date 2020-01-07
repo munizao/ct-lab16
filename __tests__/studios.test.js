@@ -22,6 +22,30 @@ describe('studio routes', () => {
     return mongoose.connection.close();
   });
 
+  it('creates an studio', () => {
+    const studio = {
+      name: 'Pixar',
+      address: {
+        city: 'Hollywood',
+        state: 'California',
+        country: 'USA'
+      }
+    };
+
+    return request(app)
+      .post('/api/v1/studios/')
+      .send(studio)
+      .then(res => {
+        expect(res.body).toEqual(
+          {
+            _id: expect.any(String),
+            name: studio.name,
+            address: studio.address,
+            __v: 0
+          });
+      });
+  });
+
   it('gets all studios', () => {
     return request(app)
       .get('/api/v1/studios/')
