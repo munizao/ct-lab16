@@ -22,6 +22,28 @@ describe('actor routes', () => {
     return mongoose.connection.close();
   });
 
+  it('creates an actor', () => {
+    const actor = {
+      name: 'Drew Barrymore',
+      dob: new Date(1975, 1, 22),
+      pob: 'Culver City, California, USA'
+    }
+
+    return request(app)
+      .post('/api/v1/actors/')
+      .send(actor)
+      .then(res => {
+        expect(res.body).toEqual(
+          {
+            _id: expect.any(String),
+            name: actor.name,
+            pob: actor.pob,
+            dob: actor.dob.toISOString(),
+            __v: 0
+          });
+      });
+  });
+
   it('gets all actors', () => {
     return request(app)
       .get('/api/v1/actors/')
@@ -35,7 +57,6 @@ describe('actor routes', () => {
         });
       });
   });
-
 
   it('gets an actor by id', () => {
     return request(app)
