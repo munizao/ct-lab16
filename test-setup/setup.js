@@ -1,6 +1,9 @@
 const Studio = require('../lib/models/Studio');
 const Actor = require('../lib/models/Actor');
 const Film = require('../lib/models/Film');
+const Reviewer = require('../lib/models/Reviewer');
+const Review = require('../lib/models/Review');
+
 
 
 const testSetup = async() => {
@@ -56,7 +59,25 @@ const testSetup = async() => {
     }
   ]);
 
-  return { studios, actors, films };
+  let reviewers = await Reviewer.create([
+    {
+      name: 'Roger Ebert',
+      company: 'Chicago Sun-Times'
+    }
+  ]);
+
+  let reviews = await Review.create([
+    {
+      rating: 5,
+      reviewer: reviewers[0]._id,
+      review: 'One thumb up!',
+      film: films[0]._id
+    }
+  ]);
+
+  return { studios, actors, films, reviewers, reviews };
 };
+
+
 
 module.exports = { testSetup };
