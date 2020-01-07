@@ -14,7 +14,6 @@ describe('film routes', () => {
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
     ({ films } = await testSetup());
-    console.log(films);
   });
 
   afterAll(() => {
