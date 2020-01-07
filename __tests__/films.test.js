@@ -11,13 +11,37 @@ describe('film routes', () => {
     connect();
   });
   let films;
+  let studios;
   beforeEach(async() => {
     mongoose.connection.dropDatabase();
-    ({ films } = await testSetup());
+    ({ films, studios } = await testSetup());
   });
 
   afterAll(() => {
     return mongoose.connection.close();
+  });
+
+  it('creates a film', () => {
+    const film = {
+      title: 'Real Genius',
+      studio: studios[0]._id,
+      released: 1985
+    };
+
+    return request(app)
+      .post('/api/v1/films/')
+      .send(film)
+      .then(res => {
+        expect(res.body).toEqual(
+          {
+            _id: expect.any(String),
+            title: film.title,
+            studio: film.studio.toString(),
+            released: film.released,
+            cast: [],
+            __v: 0
+          });
+      });
   });
 
   it('gets all films', () => {
