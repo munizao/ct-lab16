@@ -13,8 +13,9 @@ describe('reviewer routes', () => {
   let reviewers;
   let reviews;
   let films;
+
   beforeEach(async() => {
-    mongoose.connection.dropDatabase();
+    await mongoose.connection.dropDatabase();
     ({ reviewers, reviews, films } = await testSetup());
   });
 

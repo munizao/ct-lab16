@@ -14,7 +14,7 @@ describe('film routes', () => {
   let studios;
   let actors;
   beforeEach(async() => {
-    mongoose.connection.dropDatabase();
+    await mongoose.connection.dropDatabase();
     ({ films, studios, actors } = await testSetup());
   });
 
