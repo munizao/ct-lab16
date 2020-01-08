@@ -4,23 +4,10 @@ const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
 const Actor = require('../lib/models/Actor');
-const { testSetup } = require('../test-setup/setup');
+const { getActors, getFilms } = require('../lib/test-setup/setup');
 
 
 describe('actor routes', () => {
-  beforeAll(() => {
-    connect();
-  });
-  let actors;
-  let films;
-  beforeEach(async() => {
-    await mongoose.connection.dropDatabase();
-    ({ actors, films } = await testSetup());
-  });
-
-  afterAll(() => {
-    return mongoose.connection.close();
-  });
 
   it('creates an actor', () => {
     const actor = {
