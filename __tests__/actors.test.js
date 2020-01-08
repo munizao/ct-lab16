@@ -4,7 +4,7 @@ const app = require('../lib/app');
 const connect = require('../lib/utils/connect');
 const mongoose = require('mongoose');
 const Actor = require('../lib/models/Actor');
-const { getActors, getFilms } = require('../lib/test-setup/setup');
+const { getActor, getActors, getFilms } = require('../lib/test-setup/setup');
 
 
 describe('actor routes', () => {
@@ -31,37 +31,41 @@ describe('actor routes', () => {
       });
   });
 
-  it('gets all actors', () => {
+  it('gets all actors', async() => {
+    const actors = await getActors();
     return request(app)
       .get('/api/v1/actors/')
       .then(res => {
         actors.forEach((actor) => {
           expect(res.body).toContainEqual(
             {
-              _id: actor._id.toString(),
+              _id: actor._id,
               name: actor.name,
             });
         });
       });
   });
 
-  it('gets an actor by id', () => {
+  it('gets an actor by id', async() => {
+    const actor = await getActor();
+    let allFilms = await getFilms();
+    const films = allFilms.filter(film => film.cast.map(castMember => castMember.actor).includes(actor._id));
     return request(app)
-      .get(`/api/v1/actors/${actors[0]._id}`)
+      .get(`/api/v1/actors/${actor._id}`)
       .then(res => {
         expect(res.body).toEqual(
           {
-            _id: actors[0]._id.toString(),
-            name: actors[0].name,
-            dob: actors[0].dob.toISOString(),
-            pob: actors[0].pob,
-            films: [
-              {
-                _id: films[0]._id.toString(),
-                title: films[0].title,
-                released: films[0].released
-              }
-            ]
+            _id: actor._id,
+            name: actor.name,
+            dob: actor.dob,
+            pob: actor.pob,
+            films: films.map(film => { 
+              return {
+                _id: film._id,
+                title: film.title,
+                released: film.released
+              };
+            })
           });
       });
   });
@@ -73,26 +77,27 @@ describe('actor routes', () => {
       pob: 'Culver City, California, USA'
     };
 
-    const actor = await Actor.create(actorObj);
-
+    let actor = await Actor.create(actorObj);
+    actor = JSON.parse(JSON.stringify(actor));
     return request(app)
       .delete(`/api/v1/actors/${actor._id}`)
       .then(async(res) => {
         const id = actor._id;
         expect(res.body).toEqual({
-          _id: actor._id.toString(),
-          name: 'Drew Barrymore',
-          dob: actor.dob.toISOString(),
-          pob: 'Culver City, California, USA'
+          _id: actor._id,
+          name: actor.name,
+          dob: actor.dob,
+          pob: actor.pob
         });
         const deletedActor = await Actor.findById(id);
         expect(deletedActor).toBeFalsy();
       });
   });
 
-  it('errors if you delete an actor by id when it is used by a film', () => {
+  it('errors if you delete an actor by id when it is used by a film', async() => {
+    const actor = await getActor();
     return request(app)
-      .delete(`/api/v1/actors/${actors[0]._id}`)
+      .delete(`/api/v1/actors/${actor._id}`)
       .then(res => {
         expect(res.body).toEqual({
           message: 'Cannot delete actor while there are films including it.',
