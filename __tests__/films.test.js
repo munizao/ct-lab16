@@ -1,31 +1,19 @@
 require('dotenv').config();
 const request = require('supertest');
 const app = require('../lib/app');
-const connect = require('../lib/utils/connect');
-const mongoose = require('mongoose');
-const { testSetup } = require('../test-setup/setup');
+const Studio = require('../lib/models/Studio');
+const Actor = require('../lib/models/Actor');
+
+
+const { getFilm, getFilms, getStudio, } = require('../lib/test-setup/setup');
 
 
 describe('film routes', () => {
-  beforeAll(() => {
-    connect();
-  });
-  let films;
-  let studios;
-  let actors;
-  beforeEach(async() => {
-    await mongoose.connection.dropDatabase();
-    ({ films, studios, actors } = await testSetup());
-  });
-
-  afterAll(() => {
-    return mongoose.connection.close();
-  });
-
-  it('creates a film', () => {
+  it('creates a film', async() => {
+    const studio = await getStudio();
     const film = {
       title: 'Real Genius',
-      studio: studios[0]._id,
+      studio: studio._id,
       released: 1985
     };
 
@@ -37,28 +25,29 @@ describe('film routes', () => {
           {
             _id: expect.any(String),
             title: film.title,
-            studio: film.studio.toString(),
+            studio: film.studio,
             released: film.released,
             cast: [],
           });
       });
   });
 
-  it('gets all films', () => {
+  it('gets all films', async() => {
+    const films = await getFilms();
     return request(app)
       .get('/api/v1/films/')
       .then(async res => {
         await Promise.all(films.map(async(film) => {
-          await film.populate('studio', 'name').execPopulate();
-          const filmObj = film.toObject();
+          // filmDoc = await Film.hydrate(film).populate('studio', 'name').execPopulate();
+          const studio = await Studio.findById(film.studio);
           return expect(res.body).toContainEqual(
             {
-              _id: filmObj._id.toString(),
-              title: filmObj.title,
-              released: filmObj.released,
+              _id: film._id,
+              title: film.title,
+              released: film.released,
               studio: {
-                _id: filmObj.studio._id.toString(),
-                name: filmObj.studio.name
+                _id: studio._id.toString(),
+                name: studio.name
               }
             }
           );
@@ -66,40 +55,45 @@ describe('film routes', () => {
       });
   });
 
-  it('gets a film by id', () => {
+  it('gets a film by id', async() => {
+    const film = await getFilm();
     return request(app)
-      .get(`/api/v1/films/${films[0]._id}`)
-      .then(res => {
+      .get(`/api/v1/films/${film._id}`)
+      .then(async res => {
+        const studio = await Studio.findById(film.studio); 
+        const cast = await Promise.all(film.cast.map(async castMember => {
+          const actor = await Actor.findById(castMember.actor);
+          return {
+            _id: castMember._id,
+            role: castMember.role,
+            actor: { _id: actor._id, name: actor.name }
+          };
+        }));
         expect(res.body).toEqual({
-          _id: films[0]._id.toString(),
-          title: films[0].title,
-          released: films[0].released,
+          _id: film._id,
+          title: film.title,
+          released: film.released,
           studio: {
-            _id: studios[0]._id.toString(),
-            name: studios[0].name
+            _id: studio._id.toString(),
+            name: studio.name
           },
-          cast: [{
-            _id: films[0].cast[0]._id.toString(), 
-            role: films[0].cast[0].role,
-            actor: {
-              _id: actors[0]._id.toString(),
-              name: actors[0].name
-            } 
-          }]
+          cast: JSON.parse(JSON.stringify(cast))
         });
       });
   });
 
-  it('deletes a film by id', () => {
+  it('deletes a film by id', async() => {
+    const film = await getFilm();
+
     return request(app)
-      .delete(`/api/v1/films/${films[0]._id}`)
+      .delete(`/api/v1/films/${film._id}`)
       .then(res => {
         expect(res.body).toEqual({
-          _id: films[0]._id.toString(),
-          title: films[0].title,
-          cast: JSON.parse(JSON.stringify(films[0].cast)),
-          released: films[0].released,
-          studio: films[0].studio.toString()
+          _id: film._id,
+          title: film.title,
+          cast: JSON.parse(JSON.stringify(film.cast)),
+          released: film.released,
+          studio: film.studio.toString()
         });
       });
   });

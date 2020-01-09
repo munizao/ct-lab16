@@ -1,27 +1,10 @@
 require('dotenv').config();
 const request = require('supertest');
 const app = require('../lib/app');
-const connect = require('../lib/utils/connect');
-const mongoose = require('mongoose');
-const { testSetup } = require('../test-setup/setup');
+const Film = require('../lib/models/Film');
+const { getReviewer, getReviewers, getReviews } = require('../lib/test-setup/setup');
 
 describe('reviewer routes', () => {
-  beforeAll(() => {
-    connect();
-  });
-
-  let reviewers;
-  let reviews;
-  let films;
-
-  beforeEach(async() => {
-    await mongoose.connection.dropDatabase();
-    ({ reviewers, reviews, films } = await testSetup());
-  });
-
-  afterAll(() => {
-    return mongoose.connection.close();
-  });
 
   it('creates a reviewer', () => {
     const reviewerObj = {
@@ -42,14 +25,16 @@ describe('reviewer routes', () => {
       });
   });
 
-  it('gets all reviewers', () => {
+  it('gets all reviewers', async() => {
+    const reviewers = await getReviewers();
+
     return request(app)
       .get('/api/v1/reviewers/')
       .then(res => {
         reviewers.forEach((reviewer) => {
           expect(res.body).toContainEqual(
             {
-              _id: reviewer._id.toString(),
+              _id: reviewer._id,
               name: reviewer.name,
               company: reviewer.company
             });
@@ -57,41 +42,39 @@ describe('reviewer routes', () => {
       });
   });
 
-  it('gets a reviewer by id', () => {
+  it('gets a reviewer by id', async() => {
+    const reviewer = await getReviewer();
+    let reviews = await getReviews();
+    reviews = reviews.filter(review => review.reviewer === reviewer._id);
+    reviews = await Promise.all(reviews.map(async review => { 
+      const film = await Film.findById(review.film).select('title');
+      review.film = film;
+      return JSON.parse(JSON.stringify(review));
+    }));
     return request(app)
-      .get(`/api/v1/reviewers/${reviewers[0]._id}`)
+      .get(`/api/v1/reviewers/${reviewer._id}`)
       .then(res => {
         expect(res.body).toEqual(
           {
-            _id: reviewers[0]._id.toString(),
-            name: reviewers[0].name,
-            company: reviewers[0].company,
-            reviews: [
-              {
-                _id: reviews[0]._id.toString(),
-                rating: reviews[0].rating,
-                reviewer: reviews[0].reviewer.toString(),
-                review: reviews[0].review,
-                film: {
-                  _id: films[0]._id.toString(),
-                  title: films[0].title
-                }
-              }
-            ]
+            _id: reviewer._id,
+            name: reviewer.name,
+            company: reviewer.company,
+            reviews: reviews
           });
       });
   });
 
-  it('updates a reviewer by id', () => {
+  it('updates a reviewer by id', async() => {
+    const reviewer = await getReviewer();
     return request(app)
-      .patch(`/api/v1/reviewers/${reviewers[0]._id}`)
-      .send({ name: 'Richard Roeper'})
+      .patch(`/api/v1/reviewers/${reviewer._id}`)
+      .send({ name: 'Richard Roeper' })
       .then(res => {
         expect(res.body).toEqual(
           {
-            _id: reviewers[0]._id.toString(),
+            _id: reviewer._id,
             name: 'Richard Roeper',
-            company: reviewers[0].company,
+            company: reviewer.company,
           });
       });
   });
